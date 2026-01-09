@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Backlink Analyzer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+}
+
+header {
+  background: #ffffff;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.1);
+}
+
+header h1 {
+  margin: 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 25px;
+}
+
+.search {
+  display: flex;
+  gap: 10px;
+}
+
+.search input {
+  flex: 1;
+  padding: 12px;
+  font-size: 16px;
+}
+
+.search button {
+  padding: 12px 20px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.status {
+  margin-top: 15px;
+  color: #555;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.card h4 {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.card p {
+  margin: 8px 0 0;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.table-box {
+  margin-top: 30px;
+  background: white;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background: #eef2ff;
+  text-align: left;
+}
+
+a {
+  color: #2563eb;
+  text-decoration: none;
+  word-break: break-all; /* wrap long URLs */
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🔗 Backlink Analyzer</h1>
+</header>
+
+<div class="container">
+
+  <div class="search">
+    <input id="domain" value="techbullion.com" placeholder="Enter domain">
+    <button onclick="analyze()">Analyze</button>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="table-box">
+    <table id="table"></table>
+  </div>
+
+</div>
+
+<script>
+async function analyze() {
+  const domain = document.getElementById("domain").value.trim();
+  if (!domain) return;
+
+  document.getElementById("status").innerText = "Fetching data...";
+  document.getElementById("stats").innerHTML = "";
+  document.getElementById("table").innerHTML = "";
+
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/analyze?domain=${domain}`);
+    const data = await res.json();
+
+    if (data.error) throw new Error();
+
+    document.getElementById("status").innerText = "";
+
+    // Stats cards
+    let statsHTML = "";
+    for (let k in data.stats) {
+      statsHTML += `
+        <div class="card">
+          <h4>${k}</h4>
+          <p>${data.stats[k]}</p>
+        </div>`;
+    }
+    document.getElementById("stats").innerHTML = statsHTML;
+
+    // Table with readable URLs
+    let tableHTML = `
+      <tr>
+        <th>Page Title</th>
+        <th>Source URL</th>
+        <th>Anchor</th>
+        <th>Target URL</th>
+        <th>PA</th>
+        <th>DA</th>
+        <th>Date</th>
+      </tr>`;
+
+    data.backlinks.forEach(r => {
+      tableHTML += `
+        <tr>
+          <td>${r.page_title}</td>
+          <td><a href="${r.source_url}" target="_blank">${r.source_url}</a></td>
+          <td>${r.anchor_text}</td>
+          <td><a href="${r.target_url}" target="_blank">${r.target_url}</a></td>
+          <td>${r.pa}</td>
+          <td>${r.da}</td>
+          <td>${r.found_date}</td>
+        </tr>`;
+    });
+
+    document.getElementById("table").innerHTML = tableHTML;
+
+  } catch {
+    document.getElementById("status").innerText = "❌ Failed to fetch data";
+  }
+}
+</script>
+
+</body>
+</html>
