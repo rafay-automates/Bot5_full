@@ -141,7 +141,7 @@ async function analyze() {
   document.getElementById("table").innerHTML = "";
 
   try {
-    const res = await fetch(`http://127.0.0.1:8000/analyze?domain=${domain}`);
+    const res = await fetch(`https://bot5-full-backlink-ranki.onrender.com/analyze?domain=${domain}`);
     const data = await res.json();
 
     if (data.error) throw new Error();
@@ -194,4 +194,5 @@ async function analyze() {
 
 </body>
 </html>
+
 
